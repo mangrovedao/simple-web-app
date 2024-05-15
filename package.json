@@ -9,7 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@mangrovedao/mgv": "^0.6.5",
     "@radix-ui/react-slot": "^1.0.2",
+    "@rainbow-me/rainbowkit": "^2.0.7",
+    "@tanstack/react-query": "^5.36.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.378.0",
@@ -17,7 +20,9 @@
     "react": "^18",
     "react-dom": "^18",
     "tailwind-merge": "^2.3.0",
-    "tailwindcss-animate": "^1.0.7"
+    "tailwindcss-animate": "^1.0.7",
+    "viem": "~2.10.5",
+    "wagmi": "^2.8.7"
   },
   "devDependencies": {
     "@types/node": "^20",
