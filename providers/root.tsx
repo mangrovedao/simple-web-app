@@ -1,16 +1,9 @@
 "use client";
 
-import React from "react";
+import type React from "react";
 import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { WagmiProvider } from "wagmi";
-import {
-  mainnet,
-  polygon,
-  optimism,
-  arbitrum,
-  base,
-  blast,
-} from "wagmi/chains";
+import { blast } from "wagmi/chains";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 
 import "@rainbow-me/rainbowkit/styles.css";

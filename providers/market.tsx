@@ -4,7 +4,7 @@ import React from "react";
 
 import { useMarkets } from "@/hooks/use-addresses";
 import { usePathname, useSearchParams, useRouter } from "next/navigation";
-import { MarketParams } from "@mangrovedao/mgv";
+import type { MarketParams } from "@mangrovedao/mgv";
 import { getAddress, isAddressEqual } from "viem";
 
 function isMarketEqual(market1?: MarketParams, market2?: MarketParams) {
@@ -42,9 +42,8 @@ export function useMarketContext() {
       );
       if (!result) {
         return markets[0];
-      } else {
-        return result;
       }
+      return result;
     } catch (e) {
       return markets[0];
     }
@@ -58,7 +57,7 @@ export function useMarketContext() {
       params.set("market", marketParam);
       router.push(`${pathName}?${params.toString()}`);
     },
-    [currentMarket, searchParams, pathName, router]
+    [markets, currentMarket, searchParams, router, pathName]
   );
 
   return {
