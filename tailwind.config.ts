@@ -1,14 +1,14 @@
-import type { Config } from "tailwindcss"
+import type { Config } from "tailwindcss";
+import defaultTheme from "tailwindcss/defaultTheme";
 
-const config = {
+export default {
   darkMode: ["class"],
   content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
-    './src/**/*.{ts,tsx}',
-	],
-  prefix: "",
+    "./pages/**/*.{ts,tsx}",
+    "./components/**/*.{ts,tsx}",
+    "./app/**/*.{ts,tsx}",
+    "./src/**/*.{ts,tsx}",
+  ],
   theme: {
     container: {
       center: true,
@@ -18,6 +18,10 @@ const config = {
       },
     },
     extend: {
+      fontFamily: {
+        axiforma: ["Axiforma", ...defaultTheme.fontFamily.sans],
+        roboto: ["RobotoMono", ...defaultTheme.fontFamily.sans],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -27,6 +31,10 @@ const config = {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          "dark-green": "hsl(var(--color-primary-dark-green))",
+          "bush-green": "hsl(var(--color-primary-bush-green))",
+          "solid-black": "hsl(var(--color-primary-solid-black))",
+          "night-woods": "hsl(var(--color-primary-night-woods))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -52,6 +60,54 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        green: {
+          caribbean: "hsl(var(--color-green-caribbean))",
+          bangladesh: "hsl(var(--color-green-bangladesh))",
+        },
+        black: {
+          rich: " hsl(var(--color-black-rich)) ",
+        },
+        white: {
+          DEFAULT: "hsl(var(--color-white-anti-flash)) ",
+        },
+        gray: {
+          DEFAULT: "hsl(var(--color-gray))",
+          "scale-100": "hsl(var(--color-gray-scale-100)) ",
+          "scale-200": "hsl(var(--color-gray-scale-200)) ",
+          "scale-300": "hsl(var(--color-gray-scale-300)) ",
+          "scale-400": "hsl(var(--color-gray-scale-400)) ",
+          "scale-500": "hsl(var(--color-gray-scale-500)) ",
+          "scale-600": "hsl(var(--color-gray-scale-600)) ",
+          "scale-700": "hsl(var(--color-gray-scale-700)) ",
+        },
+        red: {
+          100: "hsl(var(--color-red-100))",
+          400: "hsl(var(--color-red-400))",
+          500: "hsl(var(--color-red-500))",
+        },
+        "blue-light": {
+          100: "hsl(var(--color-blue-light-100))",
+        },
+        cloud: {
+          "00": "hsl(var(--color-cloud-00))",
+          100: "hsl(var(--color-cloud-100))",
+          200: "hsl(var(--color-cloud-200))",
+          300: "hsl(var(--color-cloud-300))",
+          400: "hsl(var(--color-cloud-400))",
+          500: "hsl(var(--color-cloud-500))",
+        },
+        cherry: {
+          100: "hsl(var(--color-cherry-100))",
+          400: "hsl(var(--color-cherry-400))",
+        },
+        mango: {
+          100: "hsl(var(--color-mango-100))",
+          200: "hsl(var(--color-mango-200))",
+          300: "hsl(var(--color-mango-300))",
+        },
+      },
+      maxWidth: {
+        "8xl": "90rem",
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -72,9 +128,15 @@ const config = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
+      boxShadow: {
+        error: "0px 0px 0px 16px rgba(56, 18, 18, 0.25)",
+        success: "0 0 0 16px rgba(3, 34, 33, 0.25)",
+      },
+      backgroundImage: {
+        "level-chart":
+          "linear-gradient(180deg, rgba(3, 98, 76, 0.00) 57.96%, rgba(3, 98, 76, 0.30) 99.5%)",
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],
-} satisfies Config
-
-export default config
+} satisfies Config;

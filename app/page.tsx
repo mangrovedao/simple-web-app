@@ -1,11 +1,11 @@
 import Header from "@/components/header";
-import { ConnectButton, WalletButton } from "@rainbow-me/rainbowkit";
-import Image from "next/image";
+import Swap from "@/components/swap";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen">
+    <main className="flex flex-col min-h-screen max-w-xl mx-auto">
       <Header />
+      <Swap />
     </main>
   );
 }
