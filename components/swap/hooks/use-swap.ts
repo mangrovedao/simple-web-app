@@ -38,9 +38,11 @@ export function useSwap() {
       ? publicClient?.extend(publicMarketActions(addresses, currentMarket))
       : undefined;
 
-  const hasEnoughBalance = Number(
-    formatUnits(payTokenBalance.balance ?? 0n, payToken?.decimals ?? 18)
-  );
+  // TODO: the check is not accurate, big decimals should be taken into account
+  const hasEnoughBalance =
+    Number(
+      formatUnits(payTokenBalance.balance ?? 0n, payToken?.decimals ?? 18)
+    ) >= Number(fields.payValue);
 
   const isReverseDisabled = !payToken || !receiveToken;
   const isSwapDisabled =
