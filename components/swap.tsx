@@ -14,6 +14,7 @@ import { TokenIcon } from "./token-icon";
 import { ChevronDown } from "@/svgs";
 import { useMarkets } from "@/hooks/use-addresses";
 import { useTokenBalance } from "@/hooks/use-token-balance";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 
 function getTokenByAddress(
   address: string,
@@ -23,6 +24,43 @@ function getTokenByAddress(
     markets.find((m) => m.base.address === address)?.base ??
     markets.find((m) => m.quote.address === address)?.quote;
   return token;
+}
+
+function getAllTokens(markets: ReturnType<typeof useMarkets>): Token[] {
+  return markets.reduce<Token[]>((acc, market) => {
+    if (!acc.some((t) => t.address === market.base.address)) {
+      acc.push(market.base);
+    }
+    if (!acc.some((t) => t.address === market.quote.address)) {
+      acc.push(market.quote);
+    }
+    return acc;
+  }, []);
+}
+
+function getTradableTokens({
+  markets,
+  token,
+}: {
+  markets: ReturnType<typeof useMarkets>;
+  token?: Token;
+}): Token[] {
+  if (!token) return [];
+  return markets.reduce<Token[]>((acc, market) => {
+    if (
+      market.base.address === token.address &&
+      !acc.some((t) => t.address === market.quote.address)
+    ) {
+      acc.push(market.quote);
+    }
+    if (
+      market.quote.address === token.address &&
+      !acc.some((t) => t.address === market.base.address)
+    ) {
+      acc.push(market.base);
+    }
+    return acc;
+  }, []);
 }
 
 function useTokenByAddress(address: string): Token | undefined {
@@ -56,6 +94,26 @@ function useSwap() {
   );
 
   const isSwapDisabled = !payToken || !receiveToken || !hasEnoughBalance;
+
+  const allTokens = getAllTokens(markets);
+  const tradableTokens = getTradableTokens({
+    markets,
+    token: payToken,
+  });
+  const [payTokenDialogOpen, setPayTokenDialogOpen] = React.useState(false);
+  const [receiveTokenDialogOpen, setReceiveTokenDialogOpen] =
+    React.useState(false);
+
+  function onPayTokenSelected(token: Token) {
+    setPayTknAddress(token.address);
+    setReceiveTknAddress("");
+    setPayTokenDialogOpen(false);
+  }
+
+  function onReceiveTokenSelected(token: Token) {
+    setReceiveTknAddress(token.address);
+    setReceiveTokenDialogOpen(false);
+  }
 
   // slippage -> valeur en % dans marketOrderSimulation -> min slippage + petit % genre x1,1
   // gas estimate -> gas limit à hardcoder (20 000 000) pr le moment,
@@ -91,6 +149,14 @@ function useSwap() {
     openConnectModal,
     isSwapDisabled,
     swap,
+    tradableTokens,
+    allTokens,
+    payTokenDialogOpen,
+    setPayTokenDialogOpen,
+    receiveTokenDialogOpen,
+    setReceiveTokenDialogOpen,
+    onPayTokenSelected,
+    onReceiveTokenSelected,
   };
 }
 
@@ -106,33 +172,39 @@ export default function Swap() {
     isConnected,
     isSwapDisabled,
     swap,
+    allTokens,
+    tradableTokens,
+    payTokenDialogOpen,
+    setPayTokenDialogOpen,
+    receiveTokenDialogOpen,
+    setReceiveTokenDialogOpen,
+    onPayTokenSelected,
+    onReceiveTokenSelected,
   } = useSwap();
   return (
     <>
       <h1 className="text-3xl text-center mt-20 mb-6">Swap</h1>
       <div className="px-4  space-y-1 relative">
-        {payToken ? (
-          <TokenContainer
-            type="pay"
-            token={payToken}
-            value={fields.payValue}
-            onChange={onPayValueChange}
-          />
-        ) : null}
+        <TokenContainer
+          type="pay"
+          token={payToken}
+          value={fields.payValue}
+          onChange={onPayValueChange}
+          onTokenClicked={() => setPayTokenDialogOpen(true)}
+        />
         <Button
           onClick={reverseTokens}
           className="absolute left-1/2 -translate-y-1/2 -translate-x-1/2"
         >
           <MoveVertical />
         </Button>
-        {receiveToken ? (
-          <TokenContainer
-            type="receive"
-            token={receiveToken}
-            value={fields.receiveValue}
-            onChange={onReceiveValueChange}
-          />
-        ) : null}
+        <TokenContainer
+          type="receive"
+          token={receiveToken}
+          value={fields.receiveValue}
+          onChange={onReceiveValueChange}
+          onTokenClicked={() => setReceiveTokenDialogOpen(true)}
+        />
         {!isConnected ? (
           <Button
             className="w-full rounded-md text-xl"
@@ -152,12 +224,55 @@ export default function Swap() {
           </Button>
         )}
       </div>
+      <TokenSelectorDialog
+        open={payTokenDialogOpen}
+        tokens={allTokens}
+        onSelect={onPayTokenSelected}
+      />
+      <TokenSelectorDialog
+        open={receiveTokenDialogOpen}
+        tokens={tradableTokens}
+        onSelect={onReceiveTokenSelected}
+      />
     </>
   );
 }
 
+function TokenSelectorDialog({
+  tokens,
+  onSelect,
+  open = false,
+}: {
+  open?: boolean;
+  tokens: Token[];
+  onSelect: (token: Token) => void;
+}) {
+  return (
+    <Dialog open={open}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Select a token</DialogTitle>
+        </DialogHeader>
+        <ul className="mt-6 flex flex-col space-y-4">
+          {tokens.map((token) => (
+            <li key={token.address}>
+              <Button
+                onClick={() => onSelect(token)}
+                className="px-2 py-1 border rounded-lg text-sm flex items-center space-x-1"
+              >
+                <TokenIcon symbol={token.symbol} />
+                <span className="font-semibold text-lg">{token.symbol}</span>
+              </Button>
+            </li>
+          ))}
+        </ul>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 type TokenContainerProps = {
-  token: Token;
+  token?: Token;
   type: "pay" | "receive";
   value: string;
   onTokenClicked?: () => void;
@@ -174,6 +289,7 @@ function TokenContainer({
   onChange,
 }: TokenContainerProps) {
   const tokenBalance = useTokenBalance(token);
+
   return (
     <div className="flex bg-primary-solid-black rounded-md px-6 py-4 flex-col border border-transparent transition-all focus-within:border-green-caribbean">
       <label className="text-sm opacity-70">
@@ -188,18 +304,30 @@ function TokenContainer({
           onChange={onChange}
         />
         <span>
-          <Button
-            onClick={onTokenClicked}
-            className="px-2 py-1 border border-green-caribbean rounded-lg text-sm flex items-center space-x-1"
-          >
-            <TokenIcon symbol={token.symbol} />
-            <span className="font-semibold text-lg">{token.symbol}</span>
-            <ChevronDown className="w-3" />
-          </Button>
+          {token ? (
+            <Button
+              onClick={onTokenClicked}
+              className="px-2 py-1 border border-green-caribbean rounded-lg text-sm flex items-center space-x-1"
+            >
+              <TokenIcon symbol={token.symbol} />
+              <span className="font-semibold text-lg text-nowrap">
+                {token.symbol}
+              </span>
+              <ChevronDown className="w-3" />
+            </Button>
+          ) : (
+            <Button onClick={onTokenClicked} className="text-nowrap">
+              Select token
+            </Button>
+          )}
         </span>
       </div>
       <div className="text-xs text-right opacity-70">
-        Balance: <span>{tokenBalance.formattedWithSymbol}</span>{" "}
+        {token ? (
+          <>
+            Balance: <span>{tokenBalance.formattedWithSymbol}</span>{" "}
+          </>
+        ) : null}
         {tokenBalance.balance && type === "pay" && (
           <Button
             variant={"link"}
