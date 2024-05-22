@@ -105,9 +105,14 @@ function useSwap() {
     React.useState(false);
 
   function onPayTokenSelected(token: Token) {
+    const newTradableTokens = getTradableTokens({ markets, token });
     setPayTknAddress(token.address);
-    setReceiveTknAddress("");
     setPayTokenDialogOpen(false);
+    if (newTradableTokens.length === 1) {
+      setReceiveTknAddress(newTradableTokens[0].address);
+      return;
+    }
+    setReceiveTknAddress("");
   }
 
   function onReceiveTokenSelected(token: Token) {
@@ -228,11 +233,13 @@ export default function Swap() {
         open={payTokenDialogOpen}
         tokens={allTokens}
         onSelect={onPayTokenSelected}
+        onOpenChange={setPayTokenDialogOpen}
       />
       <TokenSelectorDialog
         open={receiveTokenDialogOpen}
         tokens={tradableTokens}
         onSelect={onReceiveTokenSelected}
+        onOpenChange={setReceiveTokenDialogOpen}
       />
     </>
   );
@@ -242,13 +249,15 @@ function TokenSelectorDialog({
   tokens,
   onSelect,
   open = false,
+  onOpenChange,
 }: {
   open?: boolean;
   tokens: Token[];
   onSelect: (token: Token) => void;
+  onOpenChange: (open: boolean) => void;
 }) {
   return (
-    <Dialog open={open}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Select a token</DialogTitle>
