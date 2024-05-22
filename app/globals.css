@@ -1,33 +1,127 @@
+@import "../public/fonts/fonts.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+    --color-red-100: 0, 100%, 68%;
+    --color-red-400: 0, 51%, 15%;
+    --color-red-500: 0, 53%, 10%;
+    --color-green-caribbean: 155, 100%, 44%;
+    --color-green-bangladesh: 166, 94%, 20%;
+    --color-primary-dark-green: 178 84% 7%;
+    --color-primary-bush-green: 180, 73%, 4%;
+    --color-primary-solid-black: 177, 72%, 6%;
+    --color-black-rich: 178, 86%, 6%;
+    --color-white-anti-flash: 170, 27%, 96%;
+    --color-gray-scale-100: 167, 24%, 73%;
+    --color-gray-scale-200: 180, 10%, 64%;
+    --color-gray-scale-300: 180, 5%, 46%;
+    --color-gray-scale-400: 180, 8%, 20%;
+    --color-gray-scale-500: 180, 9%, 12%;
+    --color-gray-scale-600: 180, 7%, 8%;
+    --color-gray-scale-700: 180, 73%, 4%;
+    --color-gray: 180, 10%, 64%;
+    --color-blue-light-100: 167, 24%, 73%;
+    --color-primary-night-woods: 180, 86%, 3%;
+    --color-cloud-00: 0, 0%, 74%;
+    --color-cloud-100: 167, 24%, 73%;
+    --color-cloud-200: 180, 10%, 64%;
+    --color-cloud-300: 180, 5%, 46%;
+    --color-cloud-400: 180, 8%, 20%;
+    --color-cloud-500: 180, 9%, 12%;
+    --color-cherry-100: 0, 100%, 68%;
+    --color-cherry-400: 0, 51%, 15%;
+    --color-mango-100: 43, 100%, 50%;
+    --color-mango-200: 45, 74%, 20%;
+    --color-mango-300: 50, 42%, 11%;
+
+    --tw-ring-color: var(hsl(--color-primary-dark-green));
+    --background: 180 86% 3%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 180 86% 6%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: var(--color-gray-scale-300);
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: var(--color-primary-solid-black);
+    --muted-foreground: 180 5% 46%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 177 72% 6%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: var(--color-green-bangladesh);
+
+    --radius: 0.5rem;
+
+    --border-width: 1px;
+
+    --bar-height: 54px;
+    --history-table-height: calc(100vh - var(--book-chart-height));
+    --book-chart-height: 31rem;
+    --history-table-content-height: calc(
+      var(--history-table-height) - 16px - var(--bar-height) * 2
+    );
+
+    /* Sonner */
+    --success-bg: var(hsl(--bg-gray-scale-700));
+  }
+
+  * {
+    @apply border-border font-axiforma;
+  }
+  body {
+    @apply overflow-x-hidden bg-background text-foreground;
+  }
+
+  html {
+    /** Handle firefox scrollbar colors */
+    scrollbar-color: #1b1f2f transparent;
+    scrollbar-width: thin;
+  }
+
+  ::-webkit-scrollbar-track {
+    border-radius: 10px;
+    background-color: transparent !important;
+  }
+
+  ::-webkit-scrollbar {
+    height: 4px;
+    width: 4px;
+    background-color: transparent !important;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply transition-all;
+    border-radius: 50px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+    background-color: hsl(var(--popover));
   }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+body.mouse-down *:focus {
+  outline: 0;
+  --tw-ring-color: transparent;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+.error-shadow {
+  box-shadow: 0 0 0 16px rgba(56, 18, 18, 0.25);
+}
+.success-shadow {
+  box-shadow: 0 0 0 16px rgba(3, 34, 33, 0.25);
 }
