@@ -33,6 +33,7 @@ export default function Swap() {
     onReceiveTokenSelected,
     isReverseDisabled,
     onMaxClicked,
+    swapButtonText,
   } = useSwap();
 
   return (
@@ -76,7 +77,7 @@ export default function Swap() {
             onClick={swap}
             disabled={isSwapDisabled}
           >
-            Swap
+            {swapButtonText}
           </Button>
         )}
       </div>

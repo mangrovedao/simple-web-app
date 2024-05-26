@@ -1,9 +1,15 @@
-import { publicMarketActions, type Token } from "@mangrovedao/mgv";
+import {
+  marketOrderSimulation,
+  publicMarketActions,
+  type Token,
+} from "@mangrovedao/mgv";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import React from "react";
 import { useAccount, usePublicClient } from "wagmi";
 import { useQueryState } from "nuqs";
-import { formatUnits } from "viem";
+import { formatUnits, parseEther, parseUnits } from "viem";
+import { useQuery } from "@tanstack/react-query";
+import { BS, type MarketOrderSimulationParams } from "@mangrovedao/mgv/lib";
 
 import { useMangroveAddresses, useMarkets } from "@/hooks/use-addresses";
 import { useTokenBalance } from "@/hooks/use-token-balance";
@@ -11,7 +17,7 @@ import { useTokenByAddress } from "./use-token-by-address";
 import { getAllTokens, getMarketFromTokens, getTradableTokens } from "../utils";
 
 export function useSwap() {
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const { openConnectModal } = useConnectModal();
   const markets = useMarkets();
   const [payTknAddress, setPayTknAddress] = useQueryState("payTkn", {
@@ -33,16 +39,14 @@ export function useSwap() {
   const currentMarket = getMarketFromTokens(markets, payToken, receiveToken);
   const publicClient = usePublicClient();
   const addresses = useMangroveAddresses();
-  const client =
+  const marketClient =
     addresses && currentMarket
       ? publicClient?.extend(publicMarketActions(addresses, currentMarket))
       : undefined;
 
-  // TODO: the check is not accurate, big decimals should be taken into account
   const hasEnoughBalance =
-    Number(
-      formatUnits(payTokenBalance.balance ?? 0n, payToken?.decimals ?? 18)
-    ) >= Number(fields.payValue);
+    (payTokenBalance.balance ?? 0n) >=
+    parseUnits(fields.payValue, payToken?.decimals ?? 18);
 
   const isReverseDisabled = !payToken || !receiveToken;
   const isSwapDisabled =
@@ -94,16 +98,93 @@ export function useSwap() {
     }));
   }
 
+  const getBookQuery = useQuery({
+    queryKey: ["getBook", marketClient],
+    queryFn: () => {
+      if (!marketClient) return null;
+      return marketClient.getBook({
+        depth: 50n,
+      });
+    },
+    refetchInterval: 10_000,
+    enabled: !!marketClient,
+  });
+
+  const simulateQuery = useQuery({
+    queryKey: [
+      "marketOrderSimulation",
+      payToken?.address,
+      receiveToken?.address,
+      currentMarket?.base.address,
+      currentMarket?.quote.address,
+      fields.payValue,
+      fields.receiveValue,
+      marketClient,
+      address,
+    ],
+    queryFn: async () => {
+      const book = getBookQuery.data;
+      if (!(payToken && fields.payValue && book && marketClient && address))
+        return null;
+      const isBasePay = currentMarket?.base.address === payToken?.address;
+      const params: MarketOrderSimulationParams = isBasePay
+        ? {
+            base: parseUnits(fields.payValue, payToken.decimals),
+            bs: BS.buy,
+            book,
+          }
+        : {
+            quote: parseUnits(fields.payValue, payToken.decimals),
+            bs: BS.buy,
+            book,
+          };
+
+      const simulation = await marketOrderSimulation(params);
+      setFields((fields) => ({
+        ...fields,
+        receiveValue: formatUnits(
+          isBasePay ? simulation.quoteAmount : simulation.baseAmount,
+          receiveToken?.decimals ?? 18
+        ),
+      }));
+
+      const [approvalStep] = await marketClient.getMarketOrderSteps({
+        bs: isBasePay ? BS.sell : BS.buy,
+        user: address,
+      });
+
+      return { simulation, approvalStep };
+    },
+    enabled:
+      !!payToken &&
+      !!receiveToken &&
+      !!fields.payValue &&
+      !!getBookQuery.data &&
+      !!marketClient &&
+      !!address,
+  });
+
+  const hasToApprove = simulateQuery.data?.approvalStep?.done === false;
+
+  const swapButtonText = !hasEnoughBalance
+    ? "Insufficient balance"
+    : fields.payValue === ""
+    ? "Enter Pay amount"
+    : hasToApprove
+    ? `Approve ${payToken?.symbol}`
+    : "Swap";
+
   // slippage -> valeur en % dans marketOrderSimulation -> min slippage + petit % genre x1,1
   // gas estimate -> gas limit à hardcoder (20 000 000) pr le moment,
   //
 
   async function swap() {
-    if (!client) return;
-    const book = await client.getBook({
-      depth: 10n,
+    if (!marketClient || !address) return;
+    const [approvalStep] = await marketClient.getMarketOrderSteps({
+      bs: BS.buy,
+      user: address,
     });
-    console.log(book);
+    console.log(approvalStep);
   }
 
   function reverseTokens() {
@@ -144,5 +225,6 @@ export function useSwap() {
     onPayTokenSelected,
     onReceiveTokenSelected,
     onMaxClicked,
+    swapButtonText,
   };
 }
