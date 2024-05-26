@@ -5,7 +5,7 @@ import {
 } from "@mangrovedao/mgv";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import React from "react";
-import { useAccount, usePublicClient } from "wagmi";
+import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { useQueryState } from "nuqs";
 import { formatUnits, parseEther, parseUnits } from "viem";
 import { useQuery } from "@tanstack/react-query";
@@ -18,6 +18,7 @@ import { getAllTokens, getMarketFromTokens, getTradableTokens } from "../utils";
 
 export function useSwap() {
   const { isConnected, address } = useAccount();
+  const { data: walletClient } = useWalletClient();
   const { openConnectModal } = useConnectModal();
   const markets = useMarkets();
   const [payTknAddress, setPayTknAddress] = useQueryState("payTkn", {
@@ -118,7 +119,6 @@ export function useSwap() {
       currentMarket?.base.address,
       currentMarket?.quote.address,
       fields.payValue,
-      fields.receiveValue,
       marketClient,
       address,
     ],
@@ -179,12 +179,20 @@ export function useSwap() {
   //
 
   async function swap() {
-    if (!marketClient || !address) return;
-    const [approvalStep] = await marketClient.getMarketOrderSteps({
-      bs: BS.buy,
-      user: address,
-    });
-    console.log(approvalStep);
+    if (!(marketClient && address && walletClient)) return;
+    const isBasePay = currentMarket?.base.address === payToken?.address;
+    const baseAmount = parseEther(fields.payValue);
+    const quoteAmount = parseEther(fields.receiveValue);
+    const { takerGot, takerGave, bounty, feePaid, request } =
+      await marketClient.simulateMarketOrderByVolumeAndMarket({
+        baseAmount,
+        quoteAmount,
+        bs: isBasePay ? BS.sell : BS.buy,
+        slippage: 0.05, // 5% slippage
+        account: address,
+      });
+    console.log({ takerGot, takerGave, bounty, feePaid, request });
+    const tx = await walletClient.writeContract(request);
   }
 
   function reverseTokens() {
