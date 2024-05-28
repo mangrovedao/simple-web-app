@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@mangrovedao/mgv':
-        specifier: ^0.6.5
-        version: 0.6.5(typescript@5.4.5)(viem@2.10.5(bufferutil@4.0.8)(typescript@5.4.5)(zod@3.23.8))
+        specifier: ^0.7.0
+        version: 0.7.0(typescript@5.4.5)(viem@2.10.5(bufferutil@4.0.8)(typescript@5.4.5)(zod@3.23.8))
       '@radix-ui/react-dialog':
         specifier: ^1.0.5
         version: 1.0.5(@types/react-dom@18.3.0)(@types/react@18.3.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -966,11 +966,11 @@ packages:
   '@lit/reactive-element@1.6.3':
     resolution: {integrity: sha512-QuTgnG52Poic7uM1AN5yJ09QMe0O28e10XzSvWDz02TJiiKee4stsiownEIadWm8nYzyDAyT+gKzUoZmiWQtsQ==}
 
-  '@mangrovedao/mgv@0.6.5':
-    resolution: {integrity: sha512-hT0Ow0LY8bpZCloUuvdlg8FwFNlfpUErLW7pRDTgBnLgPYZnIwQJabnR2pSfPbI7mYGucyYeT6sFJCVWjF/NTA==}
+  '@mangrovedao/mgv@0.7.0':
+    resolution: {integrity: sha512-d6wgQmHxsg/ZlfswNPvQzyXa8yDR2bDYZ/NzUojz98xG0Oysqy4Z8WQF8oTYzoJBHX4Re/+GlmUE2wA2Ogfing==}
     peerDependencies:
       typescript: '>=5.0.4'
-      viem: ^2.9.29
+      viem: ^2.9.1
     peerDependenciesMeta:
       typescript:
         optional: true
@@ -2585,6 +2585,7 @@ packages:
 
   glob@7.2.3:
     resolution: {integrity: sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q==}
+    deprecated: Glob versions prior to v9 are no longer supported
 
   globals@11.12.0:
     resolution: {integrity: sha512-WOBp/EEGUiIsJSp7wcv/y6MO+lV9UoncWqxuFfm8eBwzWNgyfBd6Gz+IeKQ9jCmyhoH99g15M3T+QaVHFjizVA==}
@@ -2697,6 +2698,7 @@ packages:
 
   inflight@1.0.6:
     resolution: {integrity: sha512-k92I/b08q4wvFscXCLvqfsHCrjrF7yiXsQuIVvVE7N82W3+aqpzuUdBbfhWcy/FZR3/4IgflMgKLOsvPDrGCJA==}
+    deprecated: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
 
   inherits@2.0.4:
     resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
@@ -3788,10 +3790,12 @@ packages:
 
   rimraf@2.6.3:
     resolution: {integrity: sha512-mwqeW5XsA2qAejG46gYdENaxXjx9onRNCfn7L0duuP4hCuTIi/QO7PDK07KJfp1d+izWPrzEJDcSqBa0OZQriA==}
+    deprecated: Rimraf versions prior to v4 are no longer supported
     hasBin: true
 
   rimraf@3.0.2:
     resolution: {integrity: sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==}
+    deprecated: Rimraf versions prior to v4 are no longer supported
     hasBin: true
 
   rollup-plugin-visualizer@5.12.0:
@@ -5542,7 +5546,7 @@ snapshots:
     dependencies:
       '@lit-labs/ssr-dom-shim': 1.2.0
 
-  '@mangrovedao/mgv@0.6.5(typescript@5.4.5)(viem@2.10.5(bufferutil@4.0.8)(typescript@5.4.5)(zod@3.23.8))':
+  '@mangrovedao/mgv@0.7.0(typescript@5.4.5)(viem@2.10.5(bufferutil@4.0.8)(typescript@5.4.5)(zod@3.23.8))':
     dependencies:
       viem: 2.10.5(bufferutil@4.0.8)(typescript@5.4.5)(zod@3.23.8)
       zod: 3.23.8

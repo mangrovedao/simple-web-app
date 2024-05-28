@@ -13,8 +13,10 @@ import { BS, type MarketOrderSimulationParams } from "@mangrovedao/mgv/lib";
 
 import { useMangroveAddresses, useMarkets } from "@/hooks/use-addresses";
 import { useTokenBalance } from "@/hooks/use-token-balance";
-import { useTokenByAddress } from "./use-token-by-address";
+import { useTokenByAddress } from "../../../hooks/use-token-by-address";
 import { getAllTokens, getMarketFromTokens, getTradableTokens } from "../utils";
+import { useApproveToken } from "@/hooks/use-approve-token";
+import { useSpenderAddress } from "@/hooks/use-spender-address";
 
 export function useSwap() {
   const { isConnected, address } = useAccount();
@@ -40,6 +42,8 @@ export function useSwap() {
   const currentMarket = getMarketFromTokens(markets, payToken, receiveToken);
   const publicClient = usePublicClient();
   const addresses = useMangroveAddresses();
+  const approvePayToken = useApproveToken();
+  const { data: spender } = useSpenderAddress("market");
   const marketClient =
     addresses && currentMarket
       ? publicClient?.extend(publicMarketActions(addresses, currentMarket))
@@ -54,7 +58,8 @@ export function useSwap() {
     isReverseDisabled ||
     !hasEnoughBalance ||
     fields.payValue === "" ||
-    fields.receiveValue === "";
+    fields.receiveValue === "" ||
+    approvePayToken.isPending;
 
   const allTokens = getAllTokens(markets);
   const tradableTokens = getTradableTokens({
@@ -107,7 +112,7 @@ export function useSwap() {
         depth: 50n,
       });
     },
-    refetchInterval: 10_000,
+    refetchInterval: 3_000,
     enabled: !!marketClient,
   });
 
@@ -124,22 +129,22 @@ export function useSwap() {
     ],
     queryFn: async () => {
       const book = getBookQuery.data;
-      if (!(payToken && fields.payValue && book && marketClient && address))
+      if (!(payToken && receiveToken && book && marketClient && address))
         return null;
       const isBasePay = currentMarket?.base.address === payToken?.address;
+      const payAmount = parseUnits(fields.payValue, payToken.decimals);
       const params: MarketOrderSimulationParams = isBasePay
         ? {
-            base: parseUnits(fields.payValue, payToken.decimals),
-            bs: BS.buy,
+            base: payAmount,
+            bs: BS.sell,
             book,
           }
         : {
-            quote: parseUnits(fields.payValue, payToken.decimals),
+            quote: payAmount,
             bs: BS.buy,
             book,
           };
-
-      const simulation = await marketOrderSimulation(params);
+      const simulation = marketOrderSimulation(params);
       setFields((fields) => ({
         ...fields,
         receiveValue: formatUnits(
@@ -153,12 +158,13 @@ export function useSwap() {
         user: address,
       });
 
+      console.log({ simulation, approvalStep });
+
       return { simulation, approvalStep };
     },
     enabled:
       !!payToken &&
       !!receiveToken &&
-      !!fields.payValue &&
       !!getBookQuery.data &&
       !!marketClient &&
       !!address,
@@ -170,16 +176,32 @@ export function useSwap() {
     ? "Insufficient balance"
     : fields.payValue === ""
     ? "Enter Pay amount"
+    : approvePayToken.isPending
+    ? "Approval in progress..."
     : hasToApprove
     ? `Approve ${payToken?.symbol}`
     : "Swap";
 
   // slippage -> valeur en % dans marketOrderSimulation -> min slippage + petit % genre x1,1
-  // gas estimate -> gas limit à hardcoder (20 000 000) pr le moment,
-  //
 
   async function swap() {
-    if (!(marketClient && address && walletClient)) return;
+    if (!(marketClient && address && walletClient && payToken)) return;
+
+    if (hasToApprove) {
+      await approvePayToken.mutate(
+        {
+          token: payToken,
+          spender,
+        },
+        {
+          onSuccess: () => {
+            simulateQuery.refetch();
+          },
+        }
+      );
+      return;
+    }
+
     const isBasePay = currentMarket?.base.address === payToken?.address;
     const baseAmount = parseEther(fields.payValue);
     const quoteAmount = parseEther(fields.receiveValue);
@@ -190,6 +212,7 @@ export function useSwap() {
         bs: isBasePay ? BS.sell : BS.buy,
         slippage: 0.05, // 5% slippage
         account: address,
+        gas: 20_000_000n,
       });
     console.log({ takerGot, takerGave, bounty, feePaid, request });
     const tx = await walletClient.writeContract(request);
