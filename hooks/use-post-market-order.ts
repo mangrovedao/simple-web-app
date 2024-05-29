@@ -11,7 +11,7 @@ type Props = {
 export function usePostMarketOrder({ onResult }: Props = {}) {
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
-  const { isConnected, address } = useAccount();
+  const { address } = useAccount();
 
   return useMutation({
     mutationFn: async ({
@@ -32,11 +32,6 @@ export function usePostMarketOrder({ onResult }: Props = {}) {
           throw new Error("Market order is missing params");
         }
 
-        console.log({
-          baseAmount,
-          quoteAmount,
-        });
-
         const { takerGot, takerGave, bounty, feePaid, request } =
           await marketClient.simulateMarketOrderByVolumeAndMarket({
             baseAmount,
@@ -44,28 +39,19 @@ export function usePostMarketOrder({ onResult }: Props = {}) {
             bs,
             slippage,
             account: address,
+            gas: 20_000_000n,
           });
 
         const hash = await walletClient.writeContract(request);
         const receipt = await publicClient.waitForTransactionReceipt({
           hash,
         });
-        //note:  might need to remove marketOrderResultfromlogs function if simulateMarketOrder returns correct values
-        // const result = marketOrderResultFromLogs(
-        //   { ...addresses, ...market },
-        //   market,
-        //   {
-        //     logs: receipt.logs,
-        //     taker: walletClient.account.address,
-        //     bs,
-        //   }
-        // );
 
-        // successToast(TradeMode.MARKET, bs, base, gives, result);
-        // return { result, receipt };
+        toast.success("Market order has been posted successfully");
+        return { hash, receipt };
       } catch (error) {
         console.error(error);
-        // toast.error("Failed to post the market order");
+        toast.error("Failed to post the market order");
       }
     },
     meta: {

@@ -165,8 +165,6 @@ export function useSwap() {
         user: address,
       });
 
-      console.log({ simulation, approvalStep });
-
       return { simulation, approvalStep };
     },
     enabled:
@@ -214,8 +212,12 @@ export function useSwap() {
     }
 
     const isBasePay = currentMarket?.base.address === payToken?.address;
-    const baseAmount = parseEther(fields.payValue);
-    const quoteAmount = parseEther(fields.receiveValue);
+    const baseAmount = isBasePay
+      ? parseEther(fields.payValue)
+      : parseEther(fields.receiveValue);
+    const quoteAmount = isBasePay
+      ? parseEther(fields.receiveValue)
+      : parseEther(fields.payValue);
     await postMarketOrder.mutate(
       {
         marketClient,
@@ -230,23 +232,11 @@ export function useSwap() {
             payValue: "",
             receiveValue: "",
           }));
-          toast.success("Trade successful");
           payTokenBalance.refetch();
           receiveTokenBalance.refetch();
         },
       }
     );
-    // const { takerGot, takerGave, bounty, feePaid, request } =
-    //   await marketClient.simulateMarketOrderByVolumeAndMarket({
-    //     baseAmount,
-    //     quoteAmount,
-    //     bs: isBasePay ? BS.sell : BS.buy,
-    //     slippage: 0.05, // 5% slippage
-    //     account: address,
-    //     gas: 20_000_000n,
-    //   });
-    // console.log({ takerGot, takerGave, bounty, feePaid, request });
-    // const tx = await walletClient.writeContract(request);
   }
 
   function reverseTokens() {
