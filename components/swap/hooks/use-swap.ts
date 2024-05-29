@@ -17,11 +17,13 @@ import { useTokenByAddress } from "../../../hooks/use-token-by-address";
 import { getAllTokens, getMarketFromTokens, getTradableTokens } from "../utils";
 import { useApproveToken } from "@/hooks/use-approve-token";
 import { useSpenderAddress } from "@/hooks/use-spender-address";
+import { usePostMarketOrder } from "@/hooks/use-post-market-order";
 
 export function useSwap() {
   const { isConnected, address } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { openConnectModal } = useConnectModal();
+  const postMarketOrder = usePostMarketOrder();
   const markets = useMarkets();
   const [payTknAddress, setPayTknAddress] = useQueryState("payTkn", {
     defaultValue: markets[0].base.address,
@@ -59,7 +61,10 @@ export function useSwap() {
     !hasEnoughBalance ||
     fields.payValue === "" ||
     fields.receiveValue === "" ||
-    approvePayToken.isPending;
+    Number.parseFloat(fields.payValue) <= 0 ||
+    Number.parseFloat(fields.receiveValue) <= 0 ||
+    approvePayToken.isPending ||
+    postMarketOrder.isPending;
 
   const allTokens = getAllTokens(markets);
   const tradableTokens = getTradableTokens({
@@ -176,10 +181,14 @@ export function useSwap() {
     ? "Insufficient balance"
     : fields.payValue === ""
     ? "Enter Pay amount"
+    : Number.parseFloat(fields.payValue) <= 0
+    ? "Amount must be greater than 0"
     : approvePayToken.isPending
     ? "Approval in progress..."
     : hasToApprove
     ? `Approve ${payToken?.symbol}`
+    : postMarketOrder.isPending
+    ? "Processing transaction..."
     : "Swap";
 
   // slippage -> valeur en % dans marketOrderSimulation -> min slippage + petit % genre x1,1
@@ -205,17 +214,34 @@ export function useSwap() {
     const isBasePay = currentMarket?.base.address === payToken?.address;
     const baseAmount = parseEther(fields.payValue);
     const quoteAmount = parseEther(fields.receiveValue);
-    const { takerGot, takerGave, bounty, feePaid, request } =
-      await marketClient.simulateMarketOrderByVolumeAndMarket({
+    await postMarketOrder.mutate(
+      {
+        marketClient,
         baseAmount,
         quoteAmount,
         bs: isBasePay ? BS.sell : BS.buy,
-        slippage: 0.05, // 5% slippage
-        account: address,
-        gas: 20_000_000n,
-      });
-    console.log({ takerGot, takerGave, bounty, feePaid, request });
-    const tx = await walletClient.writeContract(request);
+        slippage: 0.05,
+      },
+      {
+        onSuccess: () => {
+          setFields(() => ({
+            payValue: "",
+            receiveValue: "",
+          }));
+        },
+      }
+    );
+    // const { takerGot, takerGave, bounty, feePaid, request } =
+    //   await marketClient.simulateMarketOrderByVolumeAndMarket({
+    //     baseAmount,
+    //     quoteAmount,
+    //     bs: isBasePay ? BS.sell : BS.buy,
+    //     slippage: 0.05, // 5% slippage
+    //     account: address,
+    //     gas: 20_000_000n,
+    //   });
+    // console.log({ takerGot, takerGave, bounty, feePaid, request });
+    // const tx = await walletClient.writeContract(request);
   }
 
   function reverseTokens() {

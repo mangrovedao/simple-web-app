@@ -1,4 +1,5 @@
-import { marketOrderResultFromLogs } from "@mangrovedao/mgv";
+import type { PublicMarketActions } from "@mangrovedao/mgv";
+import type { BS } from "@mangrovedao/mgv/lib";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type TransactionReceipt, parseEther } from "viem";
 import { usePublicClient, useWalletClient } from "wagmi";
@@ -8,26 +9,32 @@ type Props = {
 };
 
 export function usePostMarketOrder({ onResult }: Props = {}) {
-  const queryClient = useQueryClient();
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
 
   return useMutation({
-    mutationFn: async ({ form }: { form: Form }) => {
+    mutationFn: async ({
+      marketClient,
+      baseAmount,
+      quoteAmount,
+      bs,
+      slippage,
+    }: {
+      marketClient: ReturnType<typeof usePublicClient> & PublicMarketActions;
+      baseAmount: bigint;
+      quoteAmount: bigint;
+      bs: BS;
+      slippage: number;
+    }) => {
       try {
-        if (
-          !publicClient ||
-          !walletClient ||
-        )
-          throw new Error("Market order post is missing params");
-
-        const { base } = market;
-        const { bs, send: gives, receive: wants, slippage } = form;
+        if (!publicClient || !walletClient || !marketClient) {
+          throw new Error("Market order is missing params");
+        }
 
         const { takerGot, takerGave, bounty, feePaid, request } =
           await marketClient.simulateMarketOrderByVolumeAndMarket({
-            baseAmount: parseEther(gives),
-            quoteAmount: parseEther(wants),
+            baseAmount,
+            quoteAmount,
             bs,
             slippage,
           });
@@ -37,18 +44,18 @@ export function usePostMarketOrder({ onResult }: Props = {}) {
           hash,
         });
         //note:  might need to remove marketOrderResultfromlogs function if simulateMarketOrder returns correct values
-        const result = marketOrderResultFromLogs(
-          { ...addresses, ...market },
-          market,
-          {
-            logs: receipt.logs,
-            taker: walletClient.account.address,
-            bs,
-          }
-        );
+        // const result = marketOrderResultFromLogs(
+        //   { ...addresses, ...market },
+        //   market,
+        //   {
+        //     logs: receipt.logs,
+        //     taker: walletClient.account.address,
+        //     bs,
+        //   }
+        // );
 
         // successToast(TradeMode.MARKET, bs, base, gives, result);
-        return { result, receipt };
+        // return { result, receipt };
       } catch (error) {
         console.error(error);
         // toast.error("Failed to post the market order");
@@ -58,28 +65,15 @@ export function usePostMarketOrder({ onResult }: Props = {}) {
       error: "Failed to post the market order",
     },
     onSuccess: async (data) => {
-      if (!data) return;
-      const { receipt } = data;
-      /*
-       * We use a custom callback to handle the success message once it's ready.
-       * This is because the onSuccess callback from the mutation will only be triggered
-       * after all the preceding logic has been executed.
-       */
-      onResult?.(receipt);
-      try {
-        // Start showing loading state indicator on parts of the UI that depend on
-        startLoading([TRADE.TABLES.ORDERS, TRADE.TABLES.FILLS]);
-        await resolveWhenBlockIsIndexed.mutateAsync({
-          blockNumber: Number(receipt.blockNumber),
-        });
-        queryClient.invalidateQueries({ queryKey: ["orders"] });
-        queryClient.invalidateQueries({ queryKey: ["fills"] });
-      } catch (error) {
-        console.error(error);
+      if (data !== undefined) {
+        const { receipt } = data;
+        /*
+         * We use a custom callback to handle the success message once it's ready.
+         * This is because the onSuccess callback from the mutation will only be triggered
+         * after all the preceding logic has been executed.
+         */
+        onResult?.(receipt);
       }
-    },
-    onSettled: () => {
-      stopLoading([TRADE.TABLES.ORDERS, TRADE.TABLES.FILLS]);
     },
   });
 }
