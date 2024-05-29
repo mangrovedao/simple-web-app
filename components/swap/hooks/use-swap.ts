@@ -10,6 +10,7 @@ import { useQueryState } from "nuqs";
 import { formatUnits, parseEther, parseUnits } from "viem";
 import { useQuery } from "@tanstack/react-query";
 import { BS, type MarketOrderSimulationParams } from "@mangrovedao/mgv/lib";
+import { toast } from "sonner";
 
 import { useMangroveAddresses, useMarkets } from "@/hooks/use-addresses";
 import { useTokenBalance } from "@/hooks/use-token-balance";
@@ -41,6 +42,7 @@ export function useSwap() {
   const payToken = useTokenByAddress(payTknAddress);
   const receiveToken = useTokenByAddress(receiveTknAddress);
   const payTokenBalance = useTokenBalance(payToken);
+  const receiveTokenBalance = useTokenBalance(receiveToken);
   const currentMarket = getMarketFromTokens(markets, payToken, receiveToken);
   const publicClient = usePublicClient();
   const addresses = useMangroveAddresses();
@@ -228,6 +230,9 @@ export function useSwap() {
             payValue: "",
             receiveValue: "",
           }));
+          toast.success("Trade successful");
+          payTokenBalance.refetch();
+          receiveTokenBalance.refetch();
         },
       }
     );

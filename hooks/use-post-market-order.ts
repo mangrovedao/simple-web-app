@@ -2,7 +2,7 @@ import type { PublicMarketActions } from "@mangrovedao/mgv";
 import type { BS } from "@mangrovedao/mgv/lib";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type TransactionReceipt, parseEther } from "viem";
-import { usePublicClient, useWalletClient } from "wagmi";
+import { usePublicClient, useWalletClient, useAccount } from "wagmi";
 
 type Props = {
   onResult?: (result: TransactionReceipt) => void;
@@ -11,6 +11,7 @@ type Props = {
 export function usePostMarketOrder({ onResult }: Props = {}) {
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
+  const { isConnected, address } = useAccount();
 
   return useMutation({
     mutationFn: async ({
@@ -31,12 +32,18 @@ export function usePostMarketOrder({ onResult }: Props = {}) {
           throw new Error("Market order is missing params");
         }
 
+        console.log({
+          baseAmount,
+          quoteAmount,
+        });
+
         const { takerGot, takerGave, bounty, feePaid, request } =
           await marketClient.simulateMarketOrderByVolumeAndMarket({
             baseAmount,
             quoteAmount,
             bs,
             slippage,
+            account: address,
           });
 
         const hash = await walletClient.writeContract(request);
