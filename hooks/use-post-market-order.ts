@@ -1,7 +1,8 @@
-import type { PublicMarketActions } from "@mangrovedao/mgv";
-import type { BS } from "@mangrovedao/mgv/lib";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { type TransactionReceipt, parseEther } from "viem";
+import type { PublicMarketActions, Token } from "@mangrovedao/mgv";
+import { BS } from "@mangrovedao/mgv/lib";
+import { useMutation } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { type TransactionReceipt, type PublicClient, formatUnits } from "viem";
 import { usePublicClient, useWalletClient, useAccount } from "wagmi";
 
 type Props = {
@@ -20,19 +21,27 @@ export function usePostMarketOrder({ onResult }: Props = {}) {
       quoteAmount,
       bs,
       slippage,
+      receiveToken,
     }: {
-      marketClient: ReturnType<typeof usePublicClient> & PublicMarketActions;
+      marketClient: PublicClient & PublicMarketActions;
       baseAmount: bigint;
       quoteAmount: bigint;
       bs: BS;
       slippage: number;
+      receiveToken?: Token;
     }) => {
       try {
-        if (!publicClient || !walletClient || !marketClient) {
+        if (
+          !publicClient ||
+          !walletClient ||
+          !marketClient ||
+          !address ||
+          !receiveToken
+        ) {
           throw new Error("Market order is missing params");
         }
 
-        const { takerGot, takerGave, bounty, feePaid, request } =
+        const { request } =
           await marketClient.simulateMarketOrderByVolumeAndMarket({
             baseAmount,
             quoteAmount,
@@ -43,19 +52,37 @@ export function usePostMarketOrder({ onResult }: Props = {}) {
           });
 
         const hash = await walletClient.writeContract(request);
-        const receipt = await publicClient.waitForTransactionReceipt({
-          hash,
+        const { receipt, result } = await marketClient.waitForMarketOrderResult(
+          {
+            hash,
+            bs,
+            taker: address,
+          }
+        );
+        const formattedReceiveAmount = formatUnits(
+          result.takerGot,
+          receiveToken.decimals
+        );
+
+        const fixedReceiveAmount = Number(
+          formattedReceiveAmount
+        ).toLocaleString(undefined, {
+          maximumFractionDigits: receiveToken.displayDecimals,
         });
 
-        toast.success("Market order has been posted successfully");
+        if (receipt.status === "reverted") {
+          toast.error("The transaction was reverted");
+        } else {
+          toast.success(
+            `You successfully received ${fixedReceiveAmount} ${receiveToken.symbol}`
+          );
+        }
+
         return { hash, receipt };
       } catch (error) {
         console.error(error);
         toast.error("Failed to post the market order");
       }
-    },
-    meta: {
-      error: "Failed to post the market order",
     },
     onSuccess: async (data) => {
       if (data !== undefined) {
