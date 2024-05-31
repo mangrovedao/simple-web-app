@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@mangrovedao/mgv':
-        specifier: ^0.7.0
-        version: 0.7.0(typescript@5.4.5)(viem@2.10.5(bufferutil@4.0.8)(typescript@5.4.5)(zod@3.23.8))
+        specifier: ^0.8.1
+        version: 0.8.1(typescript@5.4.5)(viem@2.10.5(bufferutil@4.0.8)(typescript@5.4.5)(zod@3.23.8))
       '@radix-ui/react-dialog':
         specifier: ^1.0.5
         version: 1.0.5(@types/react-dom@18.3.0)(@types/react@18.3.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -969,8 +969,8 @@ packages:
   '@lit/reactive-element@1.6.3':
     resolution: {integrity: sha512-QuTgnG52Poic7uM1AN5yJ09QMe0O28e10XzSvWDz02TJiiKee4stsiownEIadWm8nYzyDAyT+gKzUoZmiWQtsQ==}
 
-  '@mangrovedao/mgv@0.7.0':
-    resolution: {integrity: sha512-d6wgQmHxsg/ZlfswNPvQzyXa8yDR2bDYZ/NzUojz98xG0Oysqy4Z8WQF8oTYzoJBHX4Re/+GlmUE2wA2Ogfing==}
+  '@mangrovedao/mgv@0.8.1':
+    resolution: {integrity: sha512-NaWahkep51dcIrWq7a6lemRJ1tDMzG7NUji5XVQkWGmRlLiAxMIx/Db2Am6k/r8YXA6/iWPsNrHVJCZb0PwuiA==}
     peerDependencies:
       typescript: '>=5.0.4'
       viem: ^2.9.1
@@ -5555,7 +5555,7 @@ snapshots:
     dependencies:
       '@lit-labs/ssr-dom-shim': 1.2.0
 
-  '@mangrovedao/mgv@0.7.0(typescript@5.4.5)(viem@2.10.5(bufferutil@4.0.8)(typescript@5.4.5)(zod@3.23.8))':
+  '@mangrovedao/mgv@0.8.1(typescript@5.4.5)(viem@2.10.5(bufferutil@4.0.8)(typescript@5.4.5)(zod@3.23.8))':
     dependencies:
       viem: 2.10.5(bufferutil@4.0.8)(typescript@5.4.5)(zod@3.23.8)
       zod: 3.23.8

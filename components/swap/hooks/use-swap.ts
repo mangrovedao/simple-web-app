@@ -225,7 +225,9 @@ export function useSwap() {
         quoteAmount,
         bs: isBasePay ? BS.sell : BS.buy,
         slippage: 0.05,
-        receiveToken
+        receiveToken,
+        receiveValue: fields.receiveValue,
+        sendToken: payToken,
       },
       {
         onSuccess: () => {

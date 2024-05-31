@@ -1,5 +1,6 @@
 import type { PublicMarketActions, Token } from "@mangrovedao/mgv";
-import { BS } from "@mangrovedao/mgv/lib";
+import type { BS } from "@mangrovedao/mgv/lib";
+import { useAddRecentTransaction } from "@rainbow-me/rainbowkit";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { type TransactionReceipt, type PublicClient, formatUnits } from "viem";
@@ -13,6 +14,7 @@ export function usePostMarketOrder({ onResult }: Props = {}) {
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
   const { address } = useAccount();
+  const addRecentTransaction = useAddRecentTransaction();
 
   return useMutation({
     mutationFn: async ({
@@ -22,6 +24,8 @@ export function usePostMarketOrder({ onResult }: Props = {}) {
       bs,
       slippage,
       receiveToken,
+      receiveValue,
+      sendToken,
     }: {
       marketClient: PublicClient & PublicMarketActions;
       baseAmount: bigint;
@@ -29,6 +33,8 @@ export function usePostMarketOrder({ onResult }: Props = {}) {
       bs: BS;
       slippage: number;
       receiveToken?: Token;
+      receiveValue?: string;
+      sendToken?: Token;
     }) => {
       try {
         if (
@@ -36,12 +42,14 @@ export function usePostMarketOrder({ onResult }: Props = {}) {
           !walletClient ||
           !marketClient ||
           !address ||
-          !receiveToken
+          !receiveToken ||
+          !receiveValue ||
+          !sendToken
         ) {
           throw new Error("Market order is missing params");
         }
 
-        const { request } =
+        const { request, takerGave, takerGot } =
           await marketClient.simulateMarketOrderByVolumeAndMarket({
             baseAmount,
             quoteAmount,
@@ -51,7 +59,14 @@ export function usePostMarketOrder({ onResult }: Props = {}) {
             gas: 20_000_000n,
           });
 
+        const formattedTakerGave = formatUnits(takerGave, sendToken.decimals);
+        const formattedTakerGot = formatUnits(takerGot, receiveToken.decimals);
+
         const hash = await walletClient.writeContract(request);
+        addRecentTransaction({
+          hash,
+          description: `Received: ${formattedTakerGot} ${receiveToken.symbol}\nSent: ${formattedTakerGave} ${sendToken?.symbol}`,
+        });
         const { receipt, result } = await marketClient.waitForMarketOrderResult(
           {
             hash,
