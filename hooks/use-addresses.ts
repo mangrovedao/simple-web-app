@@ -2,8 +2,9 @@ import {
   blastLogics,
   blastMangrove,
   blastMarkets,
+  arbitrumMarkets,
 } from "@mangrovedao/mgv/addresses";
-import { blast } from "viem/chains";
+import { blast, arbitrum } from "viem/chains";
 import { useChainId } from "wagmi";
 
 export function useMangroveAddresses() {
@@ -21,16 +22,8 @@ export function useMarkets() {
   switch (chain) {
     case blast.id:
       return blastMarkets;
-    default:
-      return [];
-  }
-}
-
-export function useLogics() {
-  const chain = useChainId();
-  switch (chain) {
-    case blast.id:
-      return blastLogics;
+    case arbitrum.id:
+      return arbitrumMarkets;
     default:
       return [];
   }

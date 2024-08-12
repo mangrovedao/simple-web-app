@@ -3,7 +3,7 @@
 import type React from "react";
 import { getDefaultConfig, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { WagmiProvider } from "wagmi";
-import { blast } from "wagmi/chains";
+import { blast, arbitrum } from "wagmi/chains";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 
 import "@rainbow-me/rainbowkit/styles.css";
@@ -13,7 +13,7 @@ const queryClient = new QueryClient();
 const config = getDefaultConfig({
   appName: "My RainbowKit App",
   projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || "",
-  chains: [blast],
+  chains: [blast, arbitrum],
   ssr: true, // If your dApp uses server side rendering (SSR)
 });
 
