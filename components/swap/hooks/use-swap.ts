@@ -112,7 +112,12 @@ export function useSwap() {
   }
 
   const getBookQuery = useQuery({
-    queryKey: ["getBook", marketClient],
+    queryKey: [
+      "getBook",
+      marketClient,
+      currentMarket?.base.address,
+      currentMarket?.quote.address,
+    ],
     queryFn: () => {
       if (!marketClient) return null;
       return marketClient.getBook({

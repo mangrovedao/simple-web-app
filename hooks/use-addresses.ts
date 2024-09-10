@@ -1,5 +1,5 @@
 import {
-  blastLogics,
+  arbitrumMangrove,
   blastMangrove,
   blastMarkets,
   arbitrumMarkets,
@@ -10,6 +10,8 @@ import { useChainId } from "wagmi";
 export function useMangroveAddresses() {
   const chain = useChainId();
   switch (chain) {
+    case arbitrum.id:
+      return arbitrumMangrove;
     case blast.id:
       return blastMangrove;
     default:
