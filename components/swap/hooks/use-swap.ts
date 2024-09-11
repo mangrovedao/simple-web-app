@@ -218,11 +218,11 @@ export function useSwap() {
 
     const isBasePay = currentMarket?.base.address === payToken?.address;
     const baseAmount = isBasePay
-      ? parseEther(fields.payValue)
-      : parseEther(fields.receiveValue);
+      ? parseUnits(fields.payValue, currentMarket?.base.decimals ?? 18)
+      : parseUnits(fields.receiveValue, currentMarket?.base.decimals ?? 18);
     const quoteAmount = isBasePay
-      ? parseEther(fields.receiveValue)
-      : parseEther(fields.payValue);
+      ? parseUnits(fields.receiveValue, currentMarket?.quote.decimals ?? 18)
+      : parseUnits(fields.payValue, currentMarket?.quote.decimals ?? 18);
     await postMarketOrder.mutate(
       {
         marketClient,
